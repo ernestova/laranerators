@@ -1,5 +1,6 @@
 {
   "name": "ernestovargas/laranerator",
+  "version": "1.0.0",
   "description": "Laravel 5 model generator from existing schema",
   "keywords": ["laravel", "model", "schema", "generator"],
   "license": "MIT",
