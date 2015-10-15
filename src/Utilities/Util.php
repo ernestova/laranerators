@@ -1,6 +1,6 @@
 <?php
 
-namespace Iber\Generator\Utilities;
+namespace ErnestoVargas\Laranerators\Utilities;
 
 /**
  * Class VariableConversion.
