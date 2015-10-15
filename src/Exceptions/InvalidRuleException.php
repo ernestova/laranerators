@@ -1,5 +1,5 @@
 <?php
-namespace Iber\Generator\Exceptions;
+namespace ErnestoVargas\Laranerators\Exceptions;
 
 /**
  * Class InvalidRuleException.

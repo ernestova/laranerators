@@ -1,8 +1,8 @@
 <?php
 
-namespace Iber\Generator\Utilities;
+namespace ErnestoVargas\Laranerators\Utilities;
 
-use Iber\Generator\Exceptions\InvalidRuleException;
+use ErnestoVargas\Laranerators\Exceptions\InvalidRuleException;
 
 /**
  * Class RuleProcessor.

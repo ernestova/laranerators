@@ -1,8 +1,8 @@
-<?php namespace Iber\Generator\Commands;
+<?php namespace ErnestoVargas\Laranerators\Commands;
 
-use Iber\Generator\Utilities\RuleProcessor;
-use Iber\Generator\Utilities\SetGetGenerator;
-use Iber\Generator\Utilities\VariableConversion;
+use ErnestoVargas\Laranerators\Utilities\RuleProcessor;
+use ErnestoVargas\Laranerators\Utilities\SetGetGenerator;
+use ErnestoVargas\Laranerators\Utilities\VariableConversion;
 use Symfony\Component\Console\Input\InputOption;
 use Illuminate\Console\GeneratorCommand;
 use Philo\Blade\Blade;

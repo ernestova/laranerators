@@ -1,21 +1,22 @@
 {
-  "name": "ignasbernotas/laravel-model-generator",
+  "name": "ernesto_vargas/laranerator",
   "description": "Laravel 5 model generator from existing schema",
   "keywords": ["laravel", "model", "schema", "generator"],
   "license": "MIT",
   "authors": [
     {
-      "name": "Ignas Bernotas",
-      "email": "ignas@iber.lt"
+      "name": "Ernesto Vargas",
+      "email": "ernestova@gmail.com"
     }
   ],
   "require": {
     "php": ">=5.4.0",
-    "illuminate/support": "~5.0"
+    "illuminate/support": "~5.0",
+    "philo/laravel-blade": "3.*"
   },
   "autoload": {
     "psr-4": {
-      "Iber\\Generator\\": "src/"
+      "ErnestoVargas\\Laranerator\\": "src/"
     }
   }
 }
