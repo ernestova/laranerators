@@ -4,16 +4,22 @@
   "description": "Laravel 5 model generator from existing schema",
   "keywords": ["laravel", "model", "schema", "generator"],
   "license": "MIT",
+  "homepage": "https://bitbucket.org/ernesto_vargas/laranerators",
   "authors": [
     {
       "name": "Ernesto Vargas",
-      "email": "ernestova@gmail.com"
+      "email": "ernestova@gmail.com",
+      "homepage": "http://www.itmovil.com"
     }
   ],
   "require": {
     "php": ">=5.4.0",
     "illuminate/support": "~5.0",
     "philo/laravel-blade": "3.*"
+  },
+  "support": {
+    "issues": "https://bitbucket.org/ernesto_vargas/laranerators/issues",
+    "source": "https://bitbucket.org/ernesto_vargas/laranerators/src/s"
   },
   "autoload": {
     "psr-4": {
