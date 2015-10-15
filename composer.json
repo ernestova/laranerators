@@ -1,8 +1,8 @@
 {
   "name": "ernestovargas/laranerators",
-  "version": "1.0.0",
-  "description": "Laravel 5 model generator from existing schema",
-  "keywords": ["laravel", "model", "schema", "generator"],
+  "type": "library",
+  "description": "Laravel 5 generators from existing schema",
+  "keywords": ["laravel", "model", "schema", "generator", "sleeping owl", "dinjo api"],
   "license": "MIT",
   "homepage": "https://bitbucket.org/ernesto_vargas/laranerators",
   "authors": [
@@ -22,8 +22,8 @@
     "source": "https://bitbucket.org/ernesto_vargas/laranerators/src/s"
   },
   "autoload": {
-    "psr-4": {
-      "ErnestoVargas\\Laranerator\\": "src/"
+    "psr-0": {
+      "Laranerators": "src"
     }
   }
 }
