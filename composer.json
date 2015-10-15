@@ -1,5 +1,5 @@
 {
-  "name": "ernestovargas/laranerator",
+  "name": "ernestovargas/laranerators",
   "version": "1.0.0",
   "description": "Laravel 5 model generator from existing schema",
   "keywords": ["laravel", "model", "schema", "generator"],
