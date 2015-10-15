@@ -1,6 +1,6 @@
 <?php
 
-namespace ErnestoVargas\Generator;
+namespace ErnestoVargas\Generators;
 
 use Illuminate\Support\ServiceProvider;
 
