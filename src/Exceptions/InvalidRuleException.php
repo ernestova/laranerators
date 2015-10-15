@@ -1,5 +1,5 @@
 <?php
-namespace ErnestoVargas\Laranerators\Exceptions;
+namespace ErnestoVargas\Generators\Exceptions;
 
 /**
  * Class InvalidRuleException.

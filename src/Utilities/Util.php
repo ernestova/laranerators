@@ -1,11 +1,11 @@
 <?php
 
-namespace ErnestoVargas\Laranerators\Utilities;
+namespace ErnestoVargas\Generators\Utilities;
 
 /**
- * Class VariableConversion.
+ * Class Util.
  */
-class VariableConversion
+class Util
 {
     /**
      * Convert an underscored table name to an uppercased class name.

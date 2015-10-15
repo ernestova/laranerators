@@ -1,12 +1,12 @@
-<?php namespace ErnestoVargas\Laranerators\Commands;
+<?php namespace ErnestoVargas\Generators\Commands;
 
-use ErnestoVargas\Laranerators\Utilities\RuleProcessor;
-use ErnestoVargas\Laranerators\Utilities\VariableConversion;
+use ErnestoVargas\Generators\Utilities\RuleProcessor;
+use ErnestoVargas\Generators\Utilities\Util;
 use Symfony\Component\Console\Input\InputOption;
 use Illuminate\Console\GeneratorCommand;
 use Philo\Blade\Blade;
 
-class MakeOwladminsCommand extends GeneratorCommand
+class MakeOwlAdminsCommand extends GeneratorCommand
 {
     /**
      * The console command name.
@@ -134,7 +134,7 @@ class MakeOwladminsCommand extends GeneratorCommand
             return;
         }
 
-        $class = VariableConversion::convertTableNameToClassName($table);
+        $class = Util::convertTableNameToClassName($table);
 
         $name = rtrim($this->parseName($prefix . $class), 's');
         $path = app_path('Admin/'.$class.'.php');
@@ -169,14 +169,14 @@ class MakeOwladminsCommand extends GeneratorCommand
      *
      * @return mixed|string
      */
-    protected function generateView($name, $table)
+    protected function generateView($table)
     {
-        $class = VariableConversion::convertTableNameToClassName($table);
+        $class = Util::convertTableNameToClassName($table);
         $properties = $this->getTableProperties($table);
 
         $foreign_keys = $properties['foreign_keys'];
         foreach ($foreign_keys as $key => $val) {
-            $properties['foreign_keys'][$key]->referenced_class_name = VariableConversion::convertTableNameToClassName($val->referenced_table_name);
+            $properties['foreign_keys'][$key]->referenced_class_name = Util::convertTableNameToClassName($val->referenced_table_name);
         }
 
         $blade = new Blade($this->views, $this->cache);

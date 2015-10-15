@@ -16,7 +16,7 @@ class SetGetGeneratorTest extends PHPUnit_Framework_TestCase
 	}
 
 	public function setUp() {
-		$this->generator = new Iber\Generator\Utilities\SetGetGenerator([
+		$this->generator = new ErnestoVargas\Generator\Utilities\SetGetGenerator([
         	"attribute_name",
         	"test"
     	], $this->getFunctionStub, $this->setFunctionStub);

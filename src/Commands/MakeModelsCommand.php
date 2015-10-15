@@ -1,8 +1,7 @@
-<?php namespace ErnestoVargas\Laranerators\Commands;
+<?php namespace ErnestoVargas\Generators\Commands;
 
-use ErnestoVargas\Laranerators\Utilities\RuleProcessor;
-use ErnestoVargas\Laranerators\Utilities\SetGetGenerator;
-use ErnestoVargas\Laranerators\Utilities\VariableConversion;
+use ErnestoVargas\Generators\Utilities\RuleProcessor;
+use ErnestoVargas\Generators\Utilities\Util;
 use Symfony\Component\Console\Input\InputOption;
 use Illuminate\Console\GeneratorCommand;
 use Philo\Blade\Blade;
@@ -21,7 +20,7 @@ class MakeModelsCommand extends GeneratorCommand
      *
      * @var string
      */
-    protected $description = 'Build models from existing schema.';
+    protected $description = 'Build models and seeders from existing MySql schema.';
 
     /**
      * Default model namespace.
@@ -140,7 +139,7 @@ class MakeModelsCommand extends GeneratorCommand
             return;
         }
 
-        $class = VariableConversion::convertTableNameToClassName($table);
+        $class = Util::convertTableNameToClassName($table);
 
         $name = rtrim($this->parseName($prefix . $class), 's');
 
@@ -158,14 +157,13 @@ class MakeModelsCommand extends GeneratorCommand
     /**
      * Replace all stub tokens with properties.
      *
-     * @param $name
      * @param $table
      *
      * @return mixed|string
      */
-    protected function replaceTokens($name, $table)
+    protected function replaceTokens($table)
     {
-        $class = VariableConversion::convertTableNameToClassName($table);
+        $class = Util::convertTableNameToClassName($table);
         $properties = $this->getTableProperties($table);
 
         $views = __DIR__ . '/../views';
@@ -176,7 +174,7 @@ class MakeModelsCommand extends GeneratorCommand
 
         $foreign_keys = $properties['foreign_keys'];
         foreach ($foreign_keys as $key => $val) {
-            $properties['foreign_keys'][$key]->referenced_class_name = VariableConversion::convertTableNameToClassName($val->referenced_table_name);
+            $properties['foreign_keys'][$key]->referenced_class_name = Util::convertTableNameToClassName($val->referenced_table_name);
         }
 
         if ($properties['softdeletes']) $uses[] = 'SoftDeletes';
@@ -186,9 +184,9 @@ class MakeModelsCommand extends GeneratorCommand
         return $blade->view()->make('model', ['class' => $class,
                                             'table' => $table,
                                             'activitylog' => $activitylog, // Convert to parameter
-                                            'fillable' => VariableConversion::convertArrayToString($properties['fillable']),
-                                            'guarded' => VariableConversion::convertArrayToString($properties['guarded']),
-                                            'hidden' => VariableConversion::convertArrayToString($properties['hidden']),
+                                            'fillable' => Util::convertArrayToString($properties['fillable']),
+                                            'guarded' => Util::convertArrayToString($properties['guarded']),
+                                            'hidden' => Util::convertArrayToString($properties['hidden']),
                                             'foreign_keys' => $properties['foreign_keys'],
                                             'timestamps' => $properties['timestamps'],
                                             'uses' => implode(", ", $uses),

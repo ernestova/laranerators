@@ -1,6 +1,6 @@
 <?php
 
-namespace ErnestoVargas\Laranerators\Utilities;
+namespace ErnestoVargas\Generators\Utilities;
 
 use ErnestoVargas\Laranerators\Exceptions\InvalidRuleException;
 

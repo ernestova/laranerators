@@ -1,7 +1,7 @@
-<?php namespace ErnestoVargas\Laranerators\Commands;
+<?php namespace ErnestoVargas\Generators\Commands;
 
-use ErnestoVargas\Laranerators\Utilities\RuleProcessor;
-use ErnestoVargas\Laranerators\Utilities\VariableConversion;
+use ErnestoVargas\Generators\Utilities\RuleProcessor;
+use ErnestoVargas\Generators\Utilities\Util;
 use Symfony\Component\Console\Input\InputOption;
 use Illuminate\Console\GeneratorCommand;
 use Philo\Blade\Blade;
@@ -20,7 +20,7 @@ class MakeDingoCommand extends GeneratorCommand
      *
      * @var string
      */
-    protected $description = 'Build Dingo controllers, requests and transformers from DB schema.';
+    protected $description = 'Build Dingo API controllers, requests and transformers from DB schema.';
 
     /**
      * Rule processor class instance.
@@ -114,9 +114,6 @@ class MakeDingoCommand extends GeneratorCommand
      */
     protected function generateTable($table)
     {
-        //prefix is the sub-directory within app
-        $prefix = $this->option('dir');
-
         $ignoreTable = $this->option("ignore");
 
         if ($this->option("ignoresystem")) {
@@ -135,8 +132,7 @@ class MakeDingoCommand extends GeneratorCommand
             return;
         }
 
-        $class = VariableConversion::convertTableNameToClassName($table);
-        $name = rtrim($this->parseName($prefix . $class), 's');
+        $class = Util::convertTableNameToClassName($table);
 
         $this_classes = ['Controller','Request','Transformer'];
         foreach ($this_classes as $tclass) {
@@ -167,19 +163,19 @@ class MakeDingoCommand extends GeneratorCommand
     /**
      * Replace all stub tokens with properties.
      *
-     * @param $name
+     * @param $view
      * @param $table
      *
      * @return mixed|string
      */
     protected function generateView($view, $table)
     {
-        $class = VariableConversion::convertTableNameToClassName($table);
+        $class = Util::convertTableNameToClassName($table);
         $properties = $this->getTableProperties($table);
 
         $foreign_keys = $properties['foreign_keys'];
         foreach ($foreign_keys as $key => $val) {
-            $properties['foreign_keys'][$key]->referenced_class_name = VariableConversion::convertTableNameToClassName($val->referenced_table_name);
+            $properties['foreign_keys'][$key]->referenced_class_name = Util::convertTableNameToClassName($val->referenced_table_name);
         }
 
         $columns_json = [];

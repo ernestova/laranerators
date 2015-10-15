@@ -1,12 +1,20 @@
 # Model generator
-Laravel 5 model generator for an existing schema. 
+Laravel 5 model generator for an existing MySql schema.
 
-It plugs into your existing database and generates model class files based on the existing tables.
+It reads your existing database schema and generates model class files based on the existing tables.
 
 # Installation
-Add ```"ernestovargas/laranerators": "1.0.*"``` to your composer.json file.
+Add ```"ernestovargas/laranerators": "dev-master"``` to your require-dev section on your composer.json file.
 
-Add ```ErnestoVargas\Generator\ModelGeneratorProvider``` to your ```config/app.php``` providers array
+Because the generators are only useful for development, add the provider in app/Providers/AppServiceProvider.php, like:
+```php
+public function register()
+{
+    if ($this->app->environment() == 'local') {
+        $this->app->register('ErnestoVargas\Generators\GeneratorsProvider');
+    }
+}
+```
 
 # Help & Options
 ```php artisan help make:models```
