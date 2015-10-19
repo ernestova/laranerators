@@ -34,7 +34,7 @@ class MakeOwlAdminsCommand extends GeneratorCommand
      *
      * @var array
      */
-    protected $guardedRules = "equals:id"; //['ends' => ['_id', 'ids'], 'equals' => ['id']];
+    protected $guardedRules = "equals:id";
 
     /**
      * Rules for columns that go into the fillable list.
@@ -55,7 +55,7 @@ class MakeOwlAdminsCommand extends GeneratorCommand
      *
      * @var array
      */
-    protected $timestampRules = 'ends:_at'; //['ends' => ['_at']];
+    protected $timestampRules = 'ends:_at';
 
     /**
      * Contains the template stub for get function
@@ -122,30 +122,30 @@ class MakeOwlAdminsCommand extends GeneratorCommand
             $ignoreSystem = "users,permissions,permission_role,roles,role_user,users,migrations,password_resets";
 
             if (is_string($ignoreTable)) {
-                $ignoreTable.=",".$ignoreSystem;
+                $ignoreTable .= "," . $ignoreSystem;
             } else {
                 $ignoreTable = $ignoreSystem;
             }
         }
 
         // if we have ignore tables, we need to find all the posibilites
-        if (is_string($ignoreTable) && preg_match("/^".$table."|^".$table.",|,".$table.",|,".$table."$/", $ignoreTable)) {
-            $this->info($table." is ignored");
+        if (is_string($ignoreTable) && preg_match("/^" . $table . "|^" . $table . ",|," . $table . ",|," . $table . "$/", $ignoreTable)) {
+            $this->info($table . " is ignored");
             return;
         }
 
         $class = Util::convertTableNameToClassName($table);
 
         $name = rtrim($this->parseName($prefix . $class), 's');
-        $path = app_path('Admin/'.$class.'.php');
+        $path = app_path('Admin/' . $class . '.php');
 
         if ($this->files->exists($path)) {
-            return $this->error('SleepingOwl Admin for '.$table.' already exists!');
+            return $this->error('SleepingOwl Admin for ' . $table . ' already exists!');
         }
 
         $this->makeDirectory($path);
 
-        $this->files->put($path, "<?php \n\n".$this->generateView($name, $table));
+        $this->files->put($path, "<?php \n\n" . $this->generateView($name, $table));
 
         // Include Admin Controller into menu.php
         $menu = "Admin::menu(\\App\\{$class}::class)->label(trans('admin.{$table}'))->icon('fa-bars');\n";
@@ -154,11 +154,11 @@ class MakeOwlAdminsCommand extends GeneratorCommand
         // add string into translantions
         $translation_file = app_path('/../resources/lang/en/admin.php');
         $current = file_get_contents($translation_file);
-        $current = str_ireplace('];','',$current);
-        $current .= "    '{$table}' => '". ucwords(str_ireplace('_',' ',$table)) ."',\n];";
+        $current = str_ireplace('];', '', $current);
+        $current .= "    '{$table}' => '" . ucwords(str_ireplace('_', ' ', $table)) . "',\n];";
         file_put_contents($translation_file, $current);
-            
-        $this->info('SleepingOwl Admin for '.$table.' created successfully.');
+
+        $this->info('SleepingOwl Admin for ' . $table . ' created successfully.');
     }
 
     /**
@@ -180,15 +180,15 @@ class MakeOwlAdminsCommand extends GeneratorCommand
         }
 
         $blade = new Blade($this->views, $this->cache);
-        return $blade->view()->make('admin', [  'class' => $class,
-                                                'table' => $table,
-                                                'columns' => $properties['columns'],
-                                                'fillable' => $properties['fillable'],
-                                                'guarded' => $properties['guarded'],
-                                                'hidden' => $properties['hidden'],
-                                                'foreign_keys' => $properties['foreign_keys'],
-                                                'timestamps' => $properties['timestamps'],
-                                                'softdeletes' => $properties['softdeletes']])->render();
+        return $blade->view()->make('admin', ['class' => $class,
+            'table' => $table,
+            'columns' => $properties['columns'],
+            'fillable' => $properties['fillable'],
+            'guarded' => $properties['guarded'],
+            'hidden' => $properties['hidden'],
+            'foreign_keys' => $properties['foreign_keys'],
+            'timestamps' => $properties['timestamps'],
+            'softdeletes' => $properties['softdeletes']])->render();
 
     }
 
@@ -220,7 +220,7 @@ class MakeOwlAdminsCommand extends GeneratorCommand
 
             //prioritize guarded properties and move to fillable
             if ($this->ruleProcessor->check($this->option('fillable'), $column->name)) {
-                if(!in_array($column->name, ['id', 'created_at', 'updated_at', 'deleted_at'])) {
+                if (!in_array($column->name, ['id', 'created_at', 'updated_at', 'deleted_at'])) {
                     $fillable[] = $column->name;
                 }
             }
@@ -231,7 +231,7 @@ class MakeOwlAdminsCommand extends GeneratorCommand
             //check if this model is timestampable
             if ($this->ruleProcessor->check($this->option('timestamps'), $column->name)) {
                 $timestamps = true;
-                $hidden[]  = $column->name;
+                $hidden[] = $column->name;
             }
 
             //check if this model has deleted_at timestampable
@@ -239,18 +239,18 @@ class MakeOwlAdminsCommand extends GeneratorCommand
                 $softdeletes = true;
             }
 
-            if(in_array($column->name, $fillable) && !in_array($column->name, $foreign_keys_columns)) {
+            if (in_array($column->name, $fillable) && !in_array($column->name, $foreign_keys_columns)) {
                 $columns[] = ['name' => $column->name, 'type' => $column->type];
             }
         }
 
         return ['fillable' => $fillable,
-                'guarded' => $guarded,
-                'timestamps' => $timestamps,
-                'hidden' => $hidden,
-                'foreign_keys' => $foreign_keys,
-                'softdeletes' => $softdeletes,
-                'columns' => $columns];
+            'guarded' => $guarded,
+            'timestamps' => $timestamps,
+            'hidden' => $hidden,
+            'foreign_keys' => $foreign_keys,
+            'softdeletes' => $softdeletes,
+            'columns' => $columns];
     }
 
     /**
@@ -317,7 +317,7 @@ class MakeOwlAdminsCommand extends GeneratorCommand
             ['ignoresystem', "s", InputOption::VALUE_NONE, 'If you want to ignore system tables.
             Just type --ignoresystem or -s'],
             ['getset', 'm', InputOption::VALUE_OPTIONAL, 'Defines if you want to generate set and get methods'],
-            ['foreignkey', 'f', InputOption::VALUE_OPTIONAL, 'Defines if you want to generate relationships',$this->fkFunction],
+            ['foreignkey', 'f', InputOption::VALUE_OPTIONAL, 'Defines if you want to generate relationships', $this->fkFunction],
         ];
     }
 }

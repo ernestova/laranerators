@@ -48,7 +48,7 @@ class MakeModelsCommand extends GeneratorCommand
      *
      * @var array
      */
-    protected $guardedRules = "equals:id"; //['ends' => ['_id', 'ids'], 'equals' => ['id']];
+    protected $guardedRules = "equals:id";
 
     /**
      * Rules for columns that go into the fillable list.
@@ -62,8 +62,7 @@ class MakeModelsCommand extends GeneratorCommand
      *
      * @var array
      */
-    protected $timestampRules = 'ends:_at'; //['ends' => ['_at']];
-
+    protected $timestampRules = 'ends:_at';
     /**
      * Contains the template stub for set function
      * @var string
@@ -127,15 +126,15 @@ class MakeModelsCommand extends GeneratorCommand
             $ignoreSystem = "administrators,users,permissions,permission_role,roles,role_user,users,migrations,password_resets";
 
             if (is_string($ignoreTable)) {
-                $ignoreTable.=",".$ignoreSystem;
+                $ignoreTable .= "," . $ignoreSystem;
             } else {
                 $ignoreTable = $ignoreSystem;
             }
         }
 
         // if we have ignore tables, we need to find all the posibilites
-        if (is_string($ignoreTable) && preg_match("/^".$table."|^".$table.",|,".$table.",|,".$table."$/", $ignoreTable)) {
-            $this->info($table." is ignored");
+        if (is_string($ignoreTable) && preg_match("/^" . $table . "|^" . $table . ",|," . $table . ",|," . $table . "$/", $ignoreTable)) {
+            $this->info($table . " is ignored");
             return;
         }
 
@@ -144,14 +143,14 @@ class MakeModelsCommand extends GeneratorCommand
         $name = rtrim($this->parseName($prefix . $class), 's');
 
         if ($this->files->exists($path = $this->getPath($name))) {
-            return $this->error($this->extends . ' for '.$table.' already exists!');
+            return $this->error($this->extends . ' for ' . $table . ' already exists!');
         }
 
         $this->makeDirectory($path);
 
-        $this->files->put($path, "<?php \n\n".$this->replaceTokens($name, $table));
+        $this->files->put($path, "<?php \n\n" . $this->replaceTokens($name, $table));
 
-        $this->info($this->extends . ' for '.$table.' created successfully.');
+        $this->info($this->extends . ' for ' . $table . ' created successfully.');
     }
 
     /**
@@ -182,44 +181,16 @@ class MakeModelsCommand extends GeneratorCommand
 
         $blade = new Blade($views, $cache);
         return $blade->view()->make('model', ['class' => $class,
-                                            'table' => $table,
-                                            'activitylog' => $activitylog, // Convert to parameter
-                                            'fillable' => Util::convertArrayToString($properties['fillable']),
-                                            'guarded' => Util::convertArrayToString($properties['guarded']),
-                                            'hidden' => Util::convertArrayToString($properties['hidden']),
-                                            'foreign_keys' => $properties['foreign_keys'],
-                                            'timestamps' => $properties['timestamps'],
-                                            'uses' => implode(", ", $uses),
-                                            'softdeletes' => $properties['softdeletes']])->render();
+            'table' => $table,
+            'activitylog' => $activitylog, // Convert to parameter
+            'fillable' => Util::convertArrayToString($properties['fillable']),
+            'guarded' => Util::convertArrayToString($properties['guarded']),
+            'hidden' => Util::convertArrayToString($properties['hidden']),
+            'foreign_keys' => $properties['foreign_keys'],
+            'timestamps' => $properties['timestamps'],
+            'uses' => implode(", ", $uses),
+            'softdeletes' => $properties['softdeletes']])->render();
 
-    }
-
-    /**
-     * Replaces setters and getters from the stub. The functions are created
-     * from provider properties.
-     * 
-     * @param  array $properties 
-     * @param  string $class      
-     * @return string
-     */
-    protected  function replaceTokensWithSetGetFunctions($properties, $class) {
-        $getters = "";
-        $setters = "";
-
-        $fillableGetSet = new SetGetGenerator($properties['fillable'], $this->getFunctionStub, $this->setFunctionStub);
-        $getters .= $fillableGetSet->generateGetFunctions();
-        $setters .= $fillableGetSet->generateSetFunctions();
-
-        $guardedGetSet = new SetGetGenerator($properties['guarded'], $this->getFunctionStub, $this->setFunctionStub);
-        $getters .= $guardedGetSet->generateGetFunctions();
-
-        return str_replace([
-            '{{setters}}',
-            '{{getters}}'
-            ], [
-            $setters,
-            $getters
-            ], $class);
     }
 
     /**
@@ -244,7 +215,7 @@ class MakeModelsCommand extends GeneratorCommand
 
             //priotitze guarded properties and move to fillable
             if ($this->ruleProcessor->check($this->option('fillable'), $column->name)) {
-                if(!in_array($column->name, ['id', 'created_at', 'updated_at', 'deleted_at'])) {
+                if (!in_array($column->name, ['id', 'created_at', 'updated_at', 'deleted_at'])) {
                     $fillable[] = $column->name;
                 }
             }
@@ -255,7 +226,7 @@ class MakeModelsCommand extends GeneratorCommand
             //check if this model is timestampable
             if ($this->ruleProcessor->check($this->option('timestamps'), $column->name)) {
                 $timestamps = true;
-                $hidden[]  = $column->name;
+                $hidden[] = $column->name;
             }
 
             //check if this model has deleted_at timestampable
@@ -332,7 +303,7 @@ class MakeModelsCommand extends GeneratorCommand
             ['ignoresystem', "s", InputOption::VALUE_NONE, 'If you want to ignore system tables.
             Just type --ignoresystem or -s'],
             ['getset', 'm', InputOption::VALUE_OPTIONAL, 'Defines if you want to generate set and get methods'],
-            ['foreignkey', 'f', InputOption::VALUE_OPTIONAL, 'Defines if you want to generate relationships',$this->fkFunction],
+            ['foreignkey', 'f', InputOption::VALUE_OPTIONAL, 'Defines if you want to generate relationships', $this->fkFunction],
         ];
     }
 }

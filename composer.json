@@ -2,7 +2,7 @@
   "name": "ernestovargas/laranerators",
   "type": "library",
   "description": "Laravel 5 generators from existing schema",
-  "keywords": ["laravel", "model", "schema", "generator", "sleeping-owl", "dinjoapi"],
+  "keywords": ["laravel", "model", "schema", "generator", "sleeping-owl", "dingoapi"],
   "license": "MIT",
   "authors": [
     {

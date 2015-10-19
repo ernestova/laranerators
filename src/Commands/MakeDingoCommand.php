@@ -34,7 +34,7 @@ class MakeDingoCommand extends GeneratorCommand
      *
      * @var array
      */
-    protected $guardedRules = "equals:id"; //['ends' => ['_id', 'ids'], 'equals' => ['id']];
+    protected $guardedRules = "equals:id";
 
     /**
      * Rules for columns that go into the fillable list.
@@ -55,7 +55,7 @@ class MakeDingoCommand extends GeneratorCommand
      *
      * @var array
      */
-    protected $timestampRules = 'ends:_at'; //['ends' => ['_at']];
+    protected $timestampRules = 'ends:_at';
 
     /**
      * Contains the template stub for get function
@@ -120,26 +120,26 @@ class MakeDingoCommand extends GeneratorCommand
             $ignoreSystem = "users,permissions,permission_role,roles,role_user,users,migrations,password_resets";
 
             if (is_string($ignoreTable)) {
-                $ignoreTable.=",".$ignoreSystem;
+                $ignoreTable .= "," . $ignoreSystem;
             } else {
                 $ignoreTable = $ignoreSystem;
             }
         }
 
         // if we have ignore tables, we need to find all the posibilites
-        if (is_string($ignoreTable) && preg_match("/^".$table."|^".$table.",|,".$table.",|,".$table."$/", $ignoreTable)) {
-            $this->info($table." is ignored");
+        if (is_string($ignoreTable) && preg_match("/^" . $table . "|^" . $table . ",|," . $table . ",|," . $table . "$/", $ignoreTable)) {
+            $this->info($table . " is ignored");
             return;
         }
 
         $class = Util::convertTableNameToClassName($table);
 
-        $this_classes = ['Controller','Request','Transformer'];
+        $this_classes = ['Controller', 'Request', 'Transformer'];
         foreach ($this_classes as $tclass) {
-            $path  = app_path('Api/'.$tclass.'s/'. $class . $tclass.'.php');
+            $path = app_path('Api/' . $tclass . 's/' . $class . $tclass . '.php');
 
             if ($this->files->exists($path)) {
-                return $this->error('Dingo API: '.$table.$tclass.' already exists!');
+                return $this->error('Dingo API: ' . $table . $tclass . ' already exists!');
             }
 
             $this->makeDirectory($path);
@@ -147,17 +147,17 @@ class MakeDingoCommand extends GeneratorCommand
             $this->files->put($path, "<?php \n\n" . $this->generateView($tclass, $table));
         }
 
-        $new_routes = $this->blade->view()->make('api.routes', [  'class' => $class, 'table' => $table ]);
+        $new_routes = $this->blade->view()->make('api.routes', ['class' => $class, 'table' => $table]);
 
         // add Dingo API methods into routes.php
         $translation_file = app_path('Http/routes.php');
         $current = file($translation_file);
         array_pop($current);
         array_pop($current);
-        $current[] = "\n        ".$new_routes."\n    });\n});";
+        $current[] = "\n        " . $new_routes . "\n    });\n});";
         file_put_contents($translation_file, $current);
 
-        $this->info('Dingo API: '.$table.' created successfully.');
+        $this->info('Dingo API: ' . $table . ' created successfully.');
     }
 
     /**
@@ -183,16 +183,16 @@ class MakeDingoCommand extends GeneratorCommand
             $columns_json[$value['name']] = 'foo';
         }
 
-        return $this->blade->view()->make('api.'.strtolower($view), [  'class' => $class,
-                                            'table' => $table,
-                                            'columns' => $properties['columns'],
-                                            'columns_json' => json_encode($columns_json),
-                                            'fillable' => $properties['fillable'],
-                                            'guarded' => $properties['guarded'],
-                                            'hidden' => $properties['hidden'],
-                                            'foreign_keys' => $properties['foreign_keys'],
-                                            'timestamps' => $properties['timestamps'],
-                                            'softdeletes' => $properties['softdeletes']])->render();
+        return $this->blade->view()->make('api.' . strtolower($view), ['class' => $class,
+            'table' => $table,
+            'columns' => $properties['columns'],
+            'columns_json' => json_encode($columns_json),
+            'fillable' => $properties['fillable'],
+            'guarded' => $properties['guarded'],
+            'hidden' => $properties['hidden'],
+            'foreign_keys' => $properties['foreign_keys'],
+            'timestamps' => $properties['timestamps'],
+            'softdeletes' => $properties['softdeletes']])->render();
     }
 
     /**
@@ -223,7 +223,7 @@ class MakeDingoCommand extends GeneratorCommand
 
             //prioritize guarded properties and move to fillable
             if ($this->ruleProcessor->check($this->option('fillable'), $column->name)) {
-                if(!in_array($column->name, ['id', 'created_at', 'updated_at', 'deleted_at'])) {
+                if (!in_array($column->name, ['id', 'created_at', 'updated_at', 'deleted_at'])) {
                     $fillable[] = $column->name;
                 }
             }
@@ -234,7 +234,7 @@ class MakeDingoCommand extends GeneratorCommand
             //check if this model is timestampable
             if ($this->ruleProcessor->check($this->option('timestamps'), $column->name)) {
                 $timestamps = true;
-                $hidden[]  = $column->name;
+                $hidden[] = $column->name;
             }
 
             //check if this model has deleted_at timestampable
@@ -242,18 +242,18 @@ class MakeDingoCommand extends GeneratorCommand
                 $softdeletes = true;
             }
 
-            if(in_array($column->name, $fillable) && !in_array($column->name, $foreign_keys_columns)) {
+            if (in_array($column->name, $fillable) && !in_array($column->name, $foreign_keys_columns)) {
                 $columns[] = ['name' => $column->name, 'type' => $column->type];
             }
         }
 
         return ['fillable' => $fillable,
-                'guarded' => $guarded,
-                'timestamps' => $timestamps,
-                'hidden' => $hidden,
-                'foreign_keys' => $foreign_keys,
-                'softdeletes' => $softdeletes,
-                'columns' => $columns];
+            'guarded' => $guarded,
+            'timestamps' => $timestamps,
+            'hidden' => $hidden,
+            'foreign_keys' => $foreign_keys,
+            'softdeletes' => $softdeletes,
+            'columns' => $columns];
     }
 
     /**
@@ -320,7 +320,7 @@ class MakeDingoCommand extends GeneratorCommand
             ['ignoresystem', "s", InputOption::VALUE_NONE, 'If you want to ignore system tables.
             Just type --ignoresystem or -s'],
             ['getset', 'm', InputOption::VALUE_OPTIONAL, 'Defines if you want to generate set and get methods'],
-            ['foreignkey', 'f', InputOption::VALUE_OPTIONAL, 'Defines if you want to generate relationships',$this->fkFunction],
+            ['foreignkey', 'f', InputOption::VALUE_OPTIONAL, 'Defines if you want to generate relationships', $this->fkFunction],
         ];
     }
 }
