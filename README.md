@@ -1,3 +1,7 @@
+
+![alt text](https://travis-ci.org/ernestova/laranerators.svg "Build Status Images")
+
+
 # Model generator
 Laravel 5 model generator for an existing MySql schema.
 
