@@ -1,5 +1,5 @@
 
-![alt text](https://travis-ci.org/ernestova/laranerators.svg "Build Status Images")
+[![Build Status](https://travis-ci.org/ernestova/laranerators.svg)] (https://travis-ci.org/ernestova/laranerators.svg) [![SensioLabsInsight](https://insight.sensiolabs.com/projects/1fc32eff-58ae-492a-84fb-e47be21f11d6/small.png)](https://insight.sensiolabs.com/projects/1fc32eff-58ae-492a-84fb-e47be21f11d6)
 
 
 # Model generator
