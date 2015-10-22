@@ -164,7 +164,7 @@ class MakeModelsCommand extends GeneratorCommand
      */
     protected function replaceTokens($table)
     {
-        $class = Util::convertTableNameToClassName($table);
+        $class = Util::Table2ClassName($table);
         $properties = $this->getTableProperties($table);
 
         $views = __DIR__ . '/../views';
@@ -175,7 +175,7 @@ class MakeModelsCommand extends GeneratorCommand
 
         $foreign_keys = $properties['foreign_keys'];
         foreach ($foreign_keys as $key => $val) {
-            $properties['foreign_keys'][$key]->referenced_class_name = Util::convertTableNameToClassName($val->referenced_table_name);
+            $properties['foreign_keys'][$key]->referenced_class_name = Util::Table2ClassName($val->referenced_table_name);
         }
 
         if ($properties['softdeletes']) $uses[] = 'SoftDeletes';
@@ -185,9 +185,9 @@ class MakeModelsCommand extends GeneratorCommand
         return $blade->view()->make('model', ['class' => $class,
             'table' => $table,
             'activitylog' => $activitylog, // Convert to parameter
-            'fillable' => Util::convertArrayToString($properties['fillable']),
-            'guarded' => Util::convertArrayToString($properties['guarded']),
-            'hidden' => Util::convertArrayToString($properties['hidden']),
+            'fillable' => Util::Array2String($properties['fillable']),
+            'guarded' => Util::Array2String($properties['guarded']),
+            'hidden' => Util::Array2String($properties['hidden']),
             'foreign_keys' => $properties['foreign_keys'],
             'timestamps' => $properties['timestamps'],
             'uses' => implode(", ", $uses),
