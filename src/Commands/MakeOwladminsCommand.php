@@ -2,11 +2,10 @@
 
 use ErnestoVargas\Generators\Utilities\RuleProcessor;
 use ErnestoVargas\Generators\Utilities\Util;
+use ErnestoVargas\Generators\Utilities\BaseCommand;
 use Symfony\Component\Console\Input\InputOption;
-use Illuminate\Console\GeneratorCommand;
-use Philo\Blade\Blade;
 
-class MakeOwlAdminsCommand extends GeneratorCommand
+class MakeOwlAdminsCommand extends BaseCommand
 {
     /**
      * The console command name.
@@ -21,6 +20,13 @@ class MakeOwlAdminsCommand extends GeneratorCommand
      * @var string
      */
     protected $description = 'Build SleepingOwl Admin model configurations.';
+
+    /**
+     * Default model namespace.
+     *
+     * @var string
+     */
+    protected $namespace = 'Admin/';
 
     /**
      * Rule processor class instance.
@@ -90,20 +96,8 @@ class MakeOwlAdminsCommand extends GeneratorCommand
         $tables = $this->getSchemaTables();
 
         foreach ($tables as $table) {
-            $this->generateTable($table->name);
+            $this->process($table->name);
         }
-    }
-
-    /**
-     * Get schema tables.
-     *
-     * @return array
-     */
-    protected function getSchemaTables()
-    {
-        $tables = \DB::select("SELECT table_name AS `name` FROM information_schema.tables WHERE table_schema = DATABASE()");
-
-        return $tables;
     }
 
     /**
@@ -111,7 +105,7 @@ class MakeOwlAdminsCommand extends GeneratorCommand
      *
      * @param $table
      */
-    protected function generateTable($table)
+    protected function process($table)
     {
         //prefix is the sub-directory within app
         $prefix = $this->option('dir');
@@ -134,8 +128,7 @@ class MakeOwlAdminsCommand extends GeneratorCommand
             return;
         }
 
-        $class = Util::convertTableNameToClassName($table);
-
+        $class = Util::Table2ClassName($table);
         $name = rtrim($this->parseName($prefix . $class), 's');
         $path = app_path('Admin/' . $class . '.php');
 
@@ -147,7 +140,7 @@ class MakeOwlAdminsCommand extends GeneratorCommand
 
         $this->files->put($path, "<?php \n\n" . $this->generateView($name, $table));
 
-        // Include Admin Controller into menu.php
+        // Include new Controller into menu.php
         $menu = "Admin::menu(\\App\\{$class}::class)->label(trans('admin.{$table}'))->icon('fa-bars');\n";
         file_put_contents(app_path('Admin/menu.php'), $menu, FILE_APPEND | LOCK_EX);
 
@@ -159,136 +152,6 @@ class MakeOwlAdminsCommand extends GeneratorCommand
         file_put_contents($translation_file, $current);
 
         $this->info('SleepingOwl Admin for ' . $table . ' created successfully.');
-    }
-
-    /**
-     * Replace all stub tokens with properties.
-     *
-     * @param $name
-     * @param $table
-     *
-     * @return mixed|string
-     */
-    protected function generateView($table)
-    {
-        $class = Util::convertTableNameToClassName($table);
-        $properties = $this->getTableProperties($table);
-
-        $foreign_keys = $properties['foreign_keys'];
-        foreach ($foreign_keys as $key => $val) {
-            $properties['foreign_keys'][$key]->referenced_class_name = Util::convertTableNameToClassName($val->referenced_table_name);
-        }
-
-        $blade = new Blade($this->views, $this->cache);
-        return $blade->view()->make('admin', ['class' => $class,
-            'table' => $table,
-            'columns' => $properties['columns'],
-            'fillable' => $properties['fillable'],
-            'guarded' => $properties['guarded'],
-            'hidden' => $properties['hidden'],
-            'foreign_keys' => $properties['foreign_keys'],
-            'timestamps' => $properties['timestamps'],
-            'softdeletes' => $properties['softdeletes']])->render();
-
-    }
-
-    /**
-     * Fill up $fillable/$guarded/$timestamps properties based on table columns.
-     *
-     * @param $table
-     *
-     * @return array
-     */
-    protected function getTableProperties($table)
-    {
-        $fillable = [];
-        $guarded = [];
-        $hidden = [];
-        $columns = [];
-        $foreign_keys_columns = [];
-        $timestamps = false;
-        $softdeletes = false;
-
-        $table_columns = $this->getTableColumns($table);
-        $foreign_keys = $this->getForeignKeys($table);
-
-        foreach ($foreign_keys AS $k => $v) {
-            $foreign_keys_columns[] = $v->column_name;
-        }
-
-        foreach ($table_columns as $column) {
-
-            //prioritize guarded properties and move to fillable
-            if ($this->ruleProcessor->check($this->option('fillable'), $column->name)) {
-                if (!in_array($column->name, ['id', 'created_at', 'updated_at', 'deleted_at'])) {
-                    $fillable[] = $column->name;
-                }
-            }
-            if ($this->ruleProcessor->check($this->option('guarded'), $column->name)) {
-                $guarded[] = $column->name;
-            }
-
-            //check if this model is timestampable
-            if ($this->ruleProcessor->check($this->option('timestamps'), $column->name)) {
-                $timestamps = true;
-                $hidden[] = $column->name;
-            }
-
-            //check if this model has deleted_at timestampable
-            if ($this->ruleProcessor->check('equals:deleted_at', $column->name)) {
-                $softdeletes = true;
-            }
-
-            if (in_array($column->name, $fillable) && !in_array($column->name, $foreign_keys_columns)) {
-                $columns[] = ['name' => $column->name, 'type' => $column->type];
-            }
-        }
-
-        return ['fillable' => $fillable,
-            'guarded' => $guarded,
-            'timestamps' => $timestamps,
-            'hidden' => $hidden,
-            'foreign_keys' => $foreign_keys,
-            'softdeletes' => $softdeletes,
-            'columns' => $columns];
-    }
-
-    /**
-     * Get table columns.
-     *
-     * @param $table
-     *
-     * @return array
-     */
-    protected function getTableColumns($table)
-    {
-        $columns = \DB::select("SELECT COLUMN_NAME as `name`, DATA_TYPE as `type` FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '{$table}'");
-
-        return $columns;
-    }
-
-    /**
-     * Get table columns.
-     *
-     * @param $table
-     *
-     * @return array
-     */
-    protected function getForeignKeys($table)
-    {
-        $columns = \DB::select("SELECT table_name, column_name, referenced_table_name, referenced_column_name  FROM information_schema.key_column_usage WHERE TABLE_SCHEMA = DATABASE() AND referenced_table_name IS NOT NULL AND TABLE_NAME = '{$table}'");
-
-        return $columns;
-    }
-
-    /**
-     * Get stub file location.
-     *
-     * @return string
-     */
-    public function getStub()
-    {
-        return __DIR__ . '/../stubs/model.stub';
     }
 
     /**
@@ -309,7 +172,7 @@ class MakeOwlAdminsCommand extends GeneratorCommand
     protected function getOptions()
     {
         return [
-            ['dir', null, InputOption::VALUE_OPTIONAL, 'SleeloingOwl Admin directory', app_path('Admin/')],
+            ['dir', null, InputOption::VALUE_OPTIONAL, 'SleeoingOwl Admin directory', $this->namespace],
             ['fillable', null, InputOption::VALUE_OPTIONAL, 'Rules for $fillable array columns', $this->fillableRules],
             ['guarded', null, InputOption::VALUE_OPTIONAL, 'Rules for $guarded array columns', $this->guardedRules],
             ['timestamps', null, InputOption::VALUE_OPTIONAL, 'Rules for $timestamps columns', $this->timestampRules],

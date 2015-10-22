@@ -2,11 +2,10 @@
 
 use ErnestoVargas\Generators\Utilities\RuleProcessor;
 use ErnestoVargas\Generators\Utilities\Util;
+use ErnestoVargas\Generators\Utilities\BaseCommand;
 use Symfony\Component\Console\Input\InputOption;
-use Illuminate\Console\GeneratorCommand;
-use Philo\Blade\Blade;
 
-class MakeDingoCommand extends GeneratorCommand
+class MakeDingoCommand extends BaseCommand
 {
     /**
      * The console command name.
@@ -21,6 +20,14 @@ class MakeDingoCommand extends GeneratorCommand
      * @var string
      */
     protected $description = 'Build Dingo API controllers, requests and transformers from DB schema.';
+
+    /**
+     * Default model namespace.
+     *
+     * @var string
+     */
+    protected $namespace = 'API/';
+
 
     /**
      * Rule processor class instance.
@@ -91,20 +98,8 @@ class MakeDingoCommand extends GeneratorCommand
         $tables = $this->getSchemaTables();
 
         foreach ($tables as $table) {
-            $this->generateTable($table->name);
+            $this->process($table->name);
         }
-    }
-
-    /**
-     * Get schema tables.
-     *
-     * @return array
-     */
-    protected function getSchemaTables()
-    {
-        $tables = \DB::select("SELECT table_name AS `name` FROM information_schema.tables WHERE table_schema = DATABASE()");
-
-        return $tables;
     }
 
     /**
@@ -112,7 +107,7 @@ class MakeDingoCommand extends GeneratorCommand
      *
      * @param $table
      */
-    protected function generateTable($table)
+    protected function process($table)
     {
         $ignoreTable = $this->option("ignore");
 
@@ -132,7 +127,7 @@ class MakeDingoCommand extends GeneratorCommand
             return;
         }
 
-        $class = Util::convertTableNameToClassName($table);
+        $class = Util::Table2ClassName($table);
 
         $this_classes = ['Controller', 'Request', 'Transformer'];
         foreach ($this_classes as $tclass) {
@@ -161,150 +156,6 @@ class MakeDingoCommand extends GeneratorCommand
     }
 
     /**
-     * Replace all stub tokens with properties.
-     *
-     * @param $view
-     * @param $table
-     *
-     * @return mixed|string
-     */
-    protected function generateView($view, $table)
-    {
-        $class = Util::convertTableNameToClassName($table);
-        $properties = $this->getTableProperties($table);
-
-        $foreign_keys = $properties['foreign_keys'];
-        foreach ($foreign_keys as $key => $val) {
-            $properties['foreign_keys'][$key]->referenced_class_name = Util::convertTableNameToClassName($val->referenced_table_name);
-        }
-
-        $columns_json = [];
-        foreach ($properties['columns'] as $key => $value) {
-            $columns_json[$value['name']] = 'foo';
-        }
-
-        return $this->blade->view()->make('api.' . strtolower($view), ['class' => $class,
-            'table' => $table,
-            'columns' => $properties['columns'],
-            'columns_json' => json_encode($columns_json),
-            'fillable' => $properties['fillable'],
-            'guarded' => $properties['guarded'],
-            'hidden' => $properties['hidden'],
-            'foreign_keys' => $properties['foreign_keys'],
-            'timestamps' => $properties['timestamps'],
-            'softdeletes' => $properties['softdeletes']])->render();
-    }
-
-    /**
-     * Fill up $fillable/$guarded/$timestamps properties based on table columns.
-     *
-     * @param $table
-     *
-     * @return array
-     */
-    protected function getTableProperties($table)
-    {
-        $fillable = [];
-        $guarded = [];
-        $hidden = [];
-        $columns = [];
-        $foreign_keys_columns = [];
-        $timestamps = false;
-        $softdeletes = false;
-
-        $table_columns = $this->getTableColumns($table);
-        $foreign_keys = $this->getForeignKeys($table);
-
-        foreach ($foreign_keys AS $k => $v) {
-            $foreign_keys_columns[] = $v->column_name;
-        }
-
-        foreach ($table_columns as $column) {
-
-            //prioritize guarded properties and move to fillable
-            if ($this->ruleProcessor->check($this->option('fillable'), $column->name)) {
-                if (!in_array($column->name, ['id', 'created_at', 'updated_at', 'deleted_at'])) {
-                    $fillable[] = $column->name;
-                }
-            }
-            if ($this->ruleProcessor->check($this->option('guarded'), $column->name)) {
-                $guarded[] = $column->name;
-            }
-
-            //check if this model is timestampable
-            if ($this->ruleProcessor->check($this->option('timestamps'), $column->name)) {
-                $timestamps = true;
-                $hidden[] = $column->name;
-            }
-
-            //check if this model has deleted_at timestampable
-            if ($this->ruleProcessor->check('equals:deleted_at', $column->name)) {
-                $softdeletes = true;
-            }
-
-            if (in_array($column->name, $fillable) && !in_array($column->name, $foreign_keys_columns)) {
-                $columns[] = ['name' => $column->name, 'type' => $column->type];
-            }
-        }
-
-        return ['fillable' => $fillable,
-            'guarded' => $guarded,
-            'timestamps' => $timestamps,
-            'hidden' => $hidden,
-            'foreign_keys' => $foreign_keys,
-            'softdeletes' => $softdeletes,
-            'columns' => $columns];
-    }
-
-    /**
-     * Get table columns.
-     *
-     * @param $table
-     *
-     * @return array
-     */
-    protected function getTableColumns($table)
-    {
-        $columns = \DB::select("SELECT COLUMN_NAME as `name`, DATA_TYPE as `type` FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '{$table}'");
-
-        return $columns;
-    }
-
-    /**
-     * Get table columns.
-     *
-     * @param $table
-     *
-     * @return array
-     */
-    protected function getForeignKeys($table)
-    {
-        $columns = \DB::select("SELECT table_name, column_name, referenced_table_name, referenced_column_name  FROM information_schema.key_column_usage WHERE TABLE_SCHEMA = DATABASE() AND referenced_table_name IS NOT NULL AND TABLE_NAME = '{$table}'");
-
-        return $columns;
-    }
-
-    /**
-     * Get stub file location.
-     *
-     * @return string
-     */
-    public function getStub()
-    {
-        return __DIR__ . '/../stubs/model.stub';
-    }
-
-    /**
-     * Get the console command arguments.
-     *
-     * @return array
-     */
-    protected function getArguments()
-    {
-        return [];
-    }
-
-    /**
      * Get the console command options.
      *
      * @return array
@@ -312,7 +163,7 @@ class MakeDingoCommand extends GeneratorCommand
     protected function getOptions()
     {
         return [
-            ['dir', null, InputOption::VALUE_OPTIONAL, 'SleeloingOwl Admin directory', app_path('Admin/')],
+            ['dir', null, InputOption::VALUE_OPTIONAL, 'SleeloingOwl Admin directory', $this->namespace],
             ['fillable', null, InputOption::VALUE_OPTIONAL, 'Rules for $fillable array columns', $this->fillableRules],
             ['guarded', null, InputOption::VALUE_OPTIONAL, 'Rules for $guarded array columns', $this->guardedRules],
             ['timestamps', null, InputOption::VALUE_OPTIONAL, 'Rules for $timestamps columns', $this->timestampRules],

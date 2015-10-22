@@ -63,11 +63,13 @@ class MakeModelsCommand extends GeneratorCommand
      * @var array
      */
     protected $timestampRules = 'ends:_at';
+
     /**
      * Contains the template stub for set function
      * @var string
      */
     protected $setFunctionStub;
+
     /**
      * Contains the template stub for get function
      * @var string
@@ -94,7 +96,7 @@ class MakeModelsCommand extends GeneratorCommand
         $tables = $this->getSchemaTables();
 
         foreach ($tables as $table) {
-            $this->generateTable($table->name);
+            $this->process($table->name);
         }
     }
 
@@ -115,7 +117,7 @@ class MakeModelsCommand extends GeneratorCommand
      *
      * @param $table
      */
-    protected function generateTable($table)
+    protected function process($table)
     {
         //prefix is the sub-directory within app
         $prefix = $this->option('dir');
@@ -138,11 +140,11 @@ class MakeModelsCommand extends GeneratorCommand
             return;
         }
 
-        $class = Util::convertTableNameToClassName($table);
-
+        $class = Util::Table2ClassName($table);
         $name = rtrim($this->parseName($prefix . $class), 's');
+        $path = $this->getPath($name);
 
-        if ($this->files->exists($path = $this->getPath($name))) {
+        if ($this->files->exists($path)) {
             return $this->error($this->extends . ' for ' . $table . ' already exists!');
         }
 

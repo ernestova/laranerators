@@ -14,7 +14,7 @@ class Util
      *
      * @return mixed
      */
-    public static function convertTableNameToClassName($table)
+    public static function Table2ClassName($table)
     {
         $string = str_replace(' ', '', ucwords(str_replace('_', ' ', $table)));
 
@@ -28,7 +28,7 @@ class Util
      *
      * @return string
      */
-    public static function convertArrayToString($array)
+    public static function Array2String($array)
     {
         $string = '[';
         if (!empty($array)) {
@@ -48,7 +48,7 @@ class Util
      *
      * @return string true|false
      */
-    public static function convertBooleanToString($boolean)
+    public static function Boolean2String($boolean)
     {
         $string = $boolean ? 'true' : 'false';
 
