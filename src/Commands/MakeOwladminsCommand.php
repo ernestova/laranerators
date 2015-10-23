@@ -70,27 +70,13 @@ class MakeOwlAdminsCommand extends BaseCommand
     protected $fkFunction;
 
     /**
-     * Path to blade views
-     * @var string
-     */
-    protected $views = __DIR__ . '/../views';
-
-    /**
-     * Path to cache blade views creation
-     * @var string
-     */
-    protected $cache = '/tmp';
-
-    /**
      * Execute the console command.
      *
      * @return mixed
      */
     public function fire()
     {
-
         // create rule processor
-
         $this->ruleProcessor = new RuleProcessor();
 
         $tables = $this->getSchemaTables();
@@ -111,6 +97,9 @@ class MakeOwlAdminsCommand extends BaseCommand
         $prefix = $this->option('dir');
 
         $ignoreTable = $this->option("ignore");
+        $this->class = Util::Table2ClassName($table);
+        $name = rtrim($this->parseName($prefix . $this->class), 's');
+        $path = $this->getPath($name);
 
         if ($this->option("ignoresystem")) {
             $ignoreSystem = "users,permissions,permission_role,roles,role_user,users,migrations,password_resets";
@@ -128,20 +117,16 @@ class MakeOwlAdminsCommand extends BaseCommand
             return;
         }
 
-        $class = Util::Table2ClassName($table);
-        $name = rtrim($this->parseName($prefix . $class), 's');
-        $path = app_path('Admin/' . $class . '.php');
-
         if ($this->files->exists($path)) {
             return $this->error('SleepingOwl Admin for ' . $table . ' already exists!');
         }
 
         $this->makeDirectory($path);
 
-        $this->files->put($path, "<?php \n\n" . $this->generateView($name, $table));
+        $this->files->put($path, "<?php \n\n" . $this->generateView('admin', $table));
 
         // Include new Controller into menu.php
-        $menu = "Admin::menu(\\App\\{$class}::class)->label(trans('admin.{$table}'))->icon('fa-bars');\n";
+        $menu = "Admin::menu(\\App\\{$this->class}::class)->label(trans('admin.{$table}'))->icon('fa-bars');\n";
         file_put_contents(app_path('Admin/menu.php'), $menu, FILE_APPEND | LOCK_EX);
 
         // add string into translantions

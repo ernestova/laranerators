@@ -71,27 +71,12 @@ class MakeDingoCommand extends BaseCommand
     protected $fkFunction;
 
     /**
-     * Path to blade views
-     * @var string
-     */
-    protected $views = __DIR__ . '/../views';
-
-    /**
-     * Path to cache blade views creation
-     * @var string
-     */
-    protected $cache = '/tmp';
-
-    /**
      * Execute the console command.
      *
      * @return mixed
      */
     public function fire()
     {
-        // Create the Blade
-        $this->blade = new Blade($this->views, $this->cache);
-
         // create rule processor
         $this->ruleProcessor = new RuleProcessor();
 
@@ -109,7 +94,12 @@ class MakeDingoCommand extends BaseCommand
      */
     protected function process($table)
     {
+        //prefix is the sub-directory within app
+        $prefix = $this->option('dir');
+
         $ignoreTable = $this->option("ignore");
+        $this->class = Util::Table2ClassName($table);
+        $name = rtrim($this->parseName($prefix . $this->class), 's');
 
         if ($this->option("ignoresystem")) {
             $ignoreSystem = "users,permissions,permission_role,roles,role_user,users,migrations,password_resets";
@@ -127,22 +117,19 @@ class MakeDingoCommand extends BaseCommand
             return;
         }
 
-        $class = Util::Table2ClassName($table);
-
         $this_classes = ['Controller', 'Request', 'Transformer'];
         foreach ($this_classes as $tclass) {
-            $path = app_path('Api/' . $tclass . 's/' . $class . $tclass . '.php');
+            $path = app_path('Api/' . $tclass . 's/' . $this->class . $tclass . '.php');
 
             if ($this->files->exists($path)) {
                 return $this->error('Dingo API: ' . $table . $tclass . ' already exists!');
             }
-
             $this->makeDirectory($path);
-
-            $this->files->put($path, "<?php \n\n" . $this->generateView($tclass, $table));
+            $this->files->put($path, "<?php \n\n" . $this->generateView('api/'.strtolower($tclass), $table));
         }
 
-        $new_routes = $this->blade->view()->make('api.routes', ['class' => $class, 'table' => $table]);
+        //$new_routes = $this->blade->view()->make('api.routes', ['class' => $this->class, 'table' => $table]);
+        $new_routes = $this->generateView('api.routes', $table);
 
         // add Dingo API methods into routes.php
         $translation_file = app_path('Http/routes.php');
@@ -153,6 +140,16 @@ class MakeDingoCommand extends BaseCommand
         file_put_contents($translation_file, $current);
 
         $this->info('Dingo API: ' . $table . ' created successfully.');
+    }
+
+    /**
+     * Get the console command arguments.
+     *
+     * @return array
+     */
+    protected function getArguments()
+    {
+        return [];
     }
 
     /**

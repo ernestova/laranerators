@@ -5,11 +5,25 @@ use Philo\Blade\Blade;
 
 abstract class BaseCommand extends GeneratorCommand
 {
+
+    /**
+     * Contains the template stub for set function
+     * @var string
+     */
+    protected $views = __DIR__ .'/../views/';
+
+    /**
+     * Contains the template stub for set function
+     * @var string
+     */
+    protected $cache = '/tmp/';
+
     /**
      * Contains the template stub for set function
      * @var string
      */
     protected $setFunctionStub;
+
     /**
      * Contains the template stub for get function
      * @var string
@@ -130,17 +144,16 @@ abstract class BaseCommand extends GeneratorCommand
     /**
      * Replace all stub tokens with properties.
      *
-     * @param $name
+     * @param $view_name
      * @param $table
+     * @param $activitylog
      *
      * @return mixed|string
      */
-    protected function generateView($name, $table)
+    protected function generateView($view_name, $table, $activitylog = false)
     {
-        $class = Util::Table2ClassName($table);
         $properties = $this->getTableProperties($table);
 
-        $activitylog = TRUE;
         $uses = [];
 
         $foreign_keys = $properties['foreign_keys'];
@@ -157,16 +170,17 @@ abstract class BaseCommand extends GeneratorCommand
         if ($activitylog) $uses[] = 'LogsActivity';
 
         $blade = new Blade($this->views, $this->cache);
-        return $blade->view()->make('admin', ['activitylog' => $activitylog,
-            'class' => $class,
+        return $blade->view()->make($view_name, ['activitylog' => $activitylog,
+            'class' => $this->class,
             'columns' => $properties['columns'],
             'columns_json' => json_encode($columns_json),
-            'fillable' => $properties['fillable'],
-            'guarded' => $properties['guarded'],
-            'hidden' => $properties['hidden'],
+            'fillable' => Util::Array2String($properties['fillable']),
+            'guarded' => Util::Array2String($properties['guarded']) ,
+            'hidden' => Util::Array2String($properties['hidden']),
             'foreign_keys' => $properties['foreign_keys'],
             'table' => $table,
             'timestamps' => $properties['timestamps'],
+            'uses' => implode(',', $uses),
             'softdeletes' => $properties['softdeletes']])->render();
 
     }

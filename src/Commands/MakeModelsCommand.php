@@ -2,11 +2,10 @@
 
 use ErnestoVargas\Generators\Utilities\RuleProcessor;
 use ErnestoVargas\Generators\Utilities\Util;
+use ErnestoVargas\Generators\Utilities\BaseCommand;
 use Symfony\Component\Console\Input\InputOption;
-use Illuminate\Console\GeneratorCommand;
-use Philo\Blade\Blade;
 
-class MakeModelsCommand extends GeneratorCommand
+class MakeModelsCommand extends BaseCommand
 {
     /**
      * The console command name.
@@ -82,7 +81,6 @@ class MakeModelsCommand extends GeneratorCommand
      */
     protected $fkFunction;
 
-
     /**
      * Execute the console command.
      *
@@ -101,18 +99,6 @@ class MakeModelsCommand extends GeneratorCommand
     }
 
     /**
-     * Get schema tables.
-     *
-     * @return array
-     */
-    protected function getSchemaTables()
-    {
-        $tables = \DB::select("SELECT table_name AS `name` FROM information_schema.tables WHERE table_schema = DATABASE()");
-
-        return $tables;
-    }
-
-    /**
      * Generate a model file from a database table.
      *
      * @param $table
@@ -123,6 +109,9 @@ class MakeModelsCommand extends GeneratorCommand
         $prefix = $this->option('dir');
 
         $ignoreTable = $this->option("ignore");
+        $this->class = Util::Table2ClassName($table);
+        $name = rtrim($this->parseName($prefix . $this->class), 's');
+        $path = $this->getPath($name);
 
         if ($this->option("ignoresystem")) {
             $ignoreSystem = "administrators,users,permissions,permission_role,roles,role_user,users,migrations,password_resets";
@@ -140,143 +129,17 @@ class MakeModelsCommand extends GeneratorCommand
             return;
         }
 
-        $class = Util::Table2ClassName($table);
-        $name = rtrim($this->parseName($prefix . $class), 's');
-        $path = $this->getPath($name);
-
         if ($this->files->exists($path)) {
             return $this->error($this->extends . ' for ' . $table . ' already exists!');
         }
 
         $this->makeDirectory($path);
 
-        $this->files->put($path, "<?php \n\n" . $this->replaceTokens($name, $table));
+        $this->files->put($path, "<?php \n\n" . $this->generateView('model', $table, true));
 
         $this->info($this->extends . ' for ' . $table . ' created successfully.');
     }
 
-    /**
-     * Replace all stub tokens with properties.
-     *
-     * @param $table
-     *
-     * @return mixed|string
-     */
-    protected function replaceTokens($table)
-    {
-        $class = Util::Table2ClassName($table);
-        $properties = $this->getTableProperties($table);
-
-        $views = __DIR__ . '/../views';
-        $cache = '/tmp';
-
-        $activitylog = TRUE;
-        $uses = [];
-
-        $foreign_keys = $properties['foreign_keys'];
-        foreach ($foreign_keys as $key => $val) {
-            $properties['foreign_keys'][$key]->referenced_class_name = Util::Table2ClassName($val->referenced_table_name);
-        }
-
-        if ($properties['softdeletes']) $uses[] = 'SoftDeletes';
-        if ($activitylog) $uses[] = 'LogsActivity';
-
-        $blade = new Blade($views, $cache);
-        return $blade->view()->make('model', ['class' => $class,
-            'table' => $table,
-            'activitylog' => $activitylog, // Convert to parameter
-            'fillable' => Util::Array2String($properties['fillable']),
-            'guarded' => Util::Array2String($properties['guarded']),
-            'hidden' => Util::Array2String($properties['hidden']),
-            'foreign_keys' => $properties['foreign_keys'],
-            'timestamps' => $properties['timestamps'],
-            'uses' => implode(", ", $uses),
-            'softdeletes' => $properties['softdeletes']])->render();
-
-    }
-
-    /**
-     * Fill up $fillable/$guarded/$timestamps properties based on table columns.
-     *
-     * @param $table
-     *
-     * @return array
-     */
-    protected function getTableProperties($table)
-    {
-        $fillable = [];
-        $guarded = [];
-        $hidden = [];
-        $timestamps = false;
-        $softdeletes = false;
-
-        $columns = $this->getTableColumns($table);
-        $foreign_keys = $this->getForeignKeys($table);
-
-        foreach ($columns as $column) {
-
-            //priotitze guarded properties and move to fillable
-            if ($this->ruleProcessor->check($this->option('fillable'), $column->name)) {
-                if (!in_array($column->name, ['id', 'created_at', 'updated_at', 'deleted_at'])) {
-                    $fillable[] = $column->name;
-                }
-            }
-            if ($this->ruleProcessor->check($this->option('guarded'), $column->name)) {
-                $guarded[] = $column->name;
-            }
-
-            //check if this model is timestampable
-            if ($this->ruleProcessor->check($this->option('timestamps'), $column->name)) {
-                $timestamps = true;
-                $hidden[] = $column->name;
-            }
-
-            //check if this model has deleted_at timestampable
-            if ($this->ruleProcessor->check('equals:deleted_at', $column->name)) {
-                $softdeletes = true;
-            }
-        }
-
-        return ['fillable' => $fillable, 'guarded' => $guarded, 'timestamps' => $timestamps, 'hidden' => $hidden, 'foreign_keys' => $foreign_keys, 'softdeletes' => $softdeletes];
-    }
-
-    /**
-     * Get table columns.
-     *
-     * @param $table
-     *
-     * @return array
-     */
-    protected function getTableColumns($table)
-    {
-        $columns = \DB::select("SELECT COLUMN_NAME as `name` FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '{$table}'");
-
-        return $columns;
-    }
-
-    /**
-     * Get table columns.
-     *
-     * @param $table
-     *
-     * @return array
-     */
-    protected function getForeignKeys($table)
-    {
-        $columns = \DB::select("SELECT table_name, column_name, referenced_table_name, referenced_column_name  FROM information_schema.key_column_usage WHERE TABLE_SCHEMA = DATABASE() AND referenced_table_name IS NOT NULL AND TABLE_NAME = '{$table}'");
-
-        return $columns;
-    }
-
-    /**
-     * Get stub file location.
-     *
-     * @return string
-     */
-    public function getStub()
-    {
-        return __DIR__ . '/../stubs/model.stub';
-    }
 
     /**
      * Get the console command arguments.

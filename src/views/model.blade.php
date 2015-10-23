@@ -15,6 +15,7 @@ class {{ $class }} extends Model @if ($activitylog)implements LogsActivityInterf
 
 @if ($uses)
     use {{ $uses }};
+
 @endif
 @if ($softdeletes)
     public $timestamps = TRUE;
@@ -71,17 +72,17 @@ class {{ $class }} extends Model @if ($activitylog)implements LogsActivityInterf
     {
         if ($eventName == 'created')
         {
-        return 'Act:+ Ent:{{ $class }} Val:"' . $this->name . '"';
+        return 'Event:+ Entity:{{ $class }} Value:"' . $this->name . '"';
         }
 
         if ($eventName == 'updated')
         {
-        return 'Act:* Ent:{{ $class }} Val:"' . $this->name . '"';
+        return 'Event:* Entity:{{ $class }} Value:"' . $this->name . '"';
         }
 
         if ($eventName == 'deleted')
         {
-        return 'Act:- Ent:{{ $class }} Val:"' . $this->name . '"';
+        return 'Event:- Entity:{{ $class }} Value:"' . $this->name . '"';
         }
 
         return '';
