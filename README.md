@@ -1,3 +1,7 @@
+
+[![Build Status](https://travis-ci.org/ernestova/laranerators.svg)] (https://travis-ci.org/ernestova/laranerators.svg) [![SensioLabsInsight](https://insight.sensiolabs.com/projects/1fc32eff-58ae-492a-84fb-e47be21f11d6/mini.png)](https://insight.sensiolabs.com/projects/1fc32eff-58ae-492a-84fb-e47be21f11d6)
+
+
 # Model generator
 Laravel 5 model generator for an existing MySql schema.
 
